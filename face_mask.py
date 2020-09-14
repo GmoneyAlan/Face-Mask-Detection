@@ -32,4 +32,5 @@ class_names = ['No Face Mask', 'Face Mask']
 train_images, train_labels = get_data('train')
 test_images = get_data('test')
 
-Image.open(train_images[0])
+im = Image.open(train_images[0])
+im.show()
