@@ -47,9 +47,16 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
 
 model = tf.keras.Sequential(
     layers=[
-        keras.layers.Flatten(input_shape=(128,128)),
-        keras.layers.Dense(128, activation='relu'),
-        keras.layers.Dense(2, activation='relu')        
+        tf.keras.layers.experimental.preprocessing.Rescaling(1./255, input_shape=(image_height, image_width, 3)),
+        tf.keras.layers.Conv2D(16, 3, padding='same', activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Conv2D(32, 3, padding='same', activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Conv2D(64, 3, padding='same', activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        keras.layers.Dense(len(class_names))        
     ]
 )
 
@@ -57,11 +64,10 @@ model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
-#Make code to divide train folder into 2 categories to better seperate the tensorflow data
-
 
 print(train_ds.class_names)
 plt.figure(figsize=(10,10))
+'''
 for image, labels in train_ds.take(1):
     for i in range(9):
         ax = plt.subplot(3, 3, i+1)
@@ -69,8 +75,10 @@ for image, labels in train_ds.take(1):
         plt.title(class_names[labels[i]])
         plt.axis('off')
 plt.show()
+'''
+print(model.summary())
 
-#model.fit(train_ds, epochs=10, verbose=2)
+model.fit(train_ds, epochs=10, verbose=2)
 
 
 
