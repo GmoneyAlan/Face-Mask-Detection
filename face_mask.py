@@ -6,9 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from pathlib import Path
-import glob
-from PIL import Image
-import cv2
 
 folder_location = Path.cwd()
 path = str(folder_location)+'/face_mask_detection/'
@@ -18,8 +15,8 @@ image_path_test = path+'test/'
 image_height = 128
 image_width = 128
 class_names = ['No Mask', 'Mask']
-#train_ds, train_labels, test_ds = get_data()
 
+'''
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
     image_path_train,
     labels='inferred',
@@ -44,9 +41,9 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
     shuffle=True
     )
 
-'''
-Load Images into cache, so after the first epoch the model should run faster
-'''
+
+#Load Images into cache, so after the first epoch the model should run faster
+
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
@@ -74,7 +71,7 @@ model.compile(optimizer='adam',
 
 
 plt.figure(figsize=(10,10))
-'''
+
 for image, labels in train_ds.take(1):
     for i in range(9):
         ax = plt.subplot(3, 3, i+1)
@@ -82,16 +79,39 @@ for image, labels in train_ds.take(1):
         plt.title(class_names[labels[i]])
         plt.axis('off')
 plt.show()
-'''
+
 print(model.summary())
 
 model.fit(train_ds,validation_data=val_ds, epochs=3, verbose=2)
 test_loss, test_acc = model.evaluate(train_ds, verbose=2)
 print('loss:', test_loss, '  accuracy:', test_acc)
 model.save("model.h5")
+'''
 
+model = tf.keras.models.load_model('model.h5')
 
+prediction_model = tf.keras.Sequential([
+    model,
+    tf.keras.layers.Softmax()
+])
+test_images = []
+for i in range(1,11):
+    test = (tf.keras.preprocessing.image.load_img(
+        image_path_test+str('Image_'+str(i)+'.jpg'),
+        target_size=(image_height,image_width)
+    ))
+    test_arr = tf.keras.preprocessing.image.img_to_array(test)
+    test_images.append(test_arr)
 
+test_images = np.asarray(test_images)
+print(test_images.shape)
 
+prediction = prediction_model.predict(test_images)
 
+for i in range(test_images.shape):
+        ax = plt.subplot(3, 3, i+1)
+        plt.imshow(test_images[i].astype('uint8'))
+        plt.title(class_names[np.argmax(prediction[i])])
+        plt.axis('off')
+plt.show()
 
