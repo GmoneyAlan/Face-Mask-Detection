@@ -115,3 +115,5 @@ for i in range(test_images.shape):
         plt.axis('off')
 plt.show()
 
+
+#Clean up code
