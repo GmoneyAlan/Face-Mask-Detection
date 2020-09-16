@@ -29,7 +29,7 @@ train_ds = tf.keras.preprocessing.image_dataset_from_directory(
     subset='training',
     image_size=(image_height,image_width),
     batch_size=32,
-    shuffle=False
+    shuffle=True
     )
 
 val_ds = tf.keras.preprocessing.image_dataset_from_directory(
@@ -38,11 +38,19 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
     class_names=class_names,
     validation_split=0.1,
     seed=123,
-    subset='training',
+    subset='validation',
     image_size=(image_height,image_width),
     batch_size=32,
-    shuffle=False
+    shuffle=True
     )
+
+'''
+Load Images into cache, so after the first epoch the model should run faster
+'''
+AUTOTUNE = tf.data.experimental.AUTOTUNE
+
+train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
+val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 
 model = tf.keras.Sequential(
@@ -65,7 +73,6 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 
 
-print(train_ds.class_names)
 plt.figure(figsize=(10,10))
 '''
 for image, labels in train_ds.take(1):
@@ -78,7 +85,10 @@ plt.show()
 '''
 print(model.summary())
 
-model.fit(train_ds, epochs=10, verbose=2)
+model.fit(train_ds,validation_data=val_ds, epochs=3, verbose=2)
+test_loss, test_acc = model.evaluate(train_ds, verbose=2)
+print('loss:', test_loss, '  accuracy:', test_acc)
+model.save("model.h5")
 
 
 
